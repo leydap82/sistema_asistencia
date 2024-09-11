@@ -8,7 +8,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: linear-gradient(120deg, #e74c3c, #f39c12, #f1c40f);
+            background: linear-gradient(120deg, #83aae6, #5e5bf5, #4d25fd);
             color: #fff;
             text-align: center;
             padding: 50px;
@@ -72,7 +72,7 @@
     <img src="img/logo.png" alt="Logo de la Institución" class="logo">
 
     <h1><i class="fas fa-user-plus"></i> Registrar Estudiantes</h1>
-    
+
     <form id="studentForm">
         <label for="studentID"><i class="fas fa-id-card"></i> ID del Estudiante</label>
         <input type="text" id="studentID" required>
@@ -82,6 +82,10 @@
         <input type="text" id="ciclo" required>
         <button type="submit"><i class="fas fa-save"></i> Registrar Estudiante</button>
     </form>
+
+    <h2>Importar Estudiantes desde Excel</h2>
+    <input type="file" id="fileUpload" />
+    <button onclick="importarExcel()">Importar Excel</button>
 
     <h2>Estudiantes Registrados</h2>
     <table border="1" id="studentTable">
@@ -96,6 +100,7 @@
         <tbody></tbody>
     </table>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
     <script>
         document.getElementById('studentForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -144,6 +149,40 @@
             estudiantes.splice(index, 1);
             localStorage.setItem('estudiantes', JSON.stringify(estudiantes));
             mostrarEstudiantes();
+        }
+
+        // Función para importar el archivo Excel y almacenar en localStorage
+        function importarExcel() {
+            const fileUpload = document.getElementById('fileUpload').files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                // Obtener la primera hoja del Excel
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+
+                // Convertir la hoja a formato JSON
+                const listaEstudiantes = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+                // Guardar la lista de estudiantes en localStorage
+                const estudiantesExistentes = JSON.parse(localStorage.getItem('estudiantes')) || [];
+                const estudiantesNuevos = listaEstudiantes.slice(1).map(row => ({
+                    studentID: row[0],
+                    nombre: row[1],
+                    ciclo: row[2] || 'N/A'
+                }));
+
+                const estudiantesActualizados = [...estudiantesExistentes, ...estudiantesNuevos];
+
+                localStorage.setItem('estudiantes', JSON.stringify(estudiantesActualizados));
+
+                alert('Lista de estudiantes importada correctamente');
+                mostrarEstudiantes();
+            };
+
+            reader.readAsArrayBuffer(fileUpload);
         }
 
         window.onload = mostrarEstudiantes;
