@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escanear Código QR</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(120deg, #3498db, #2ecc71, #ffffff);
+            color: #fff;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            color: #333;
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        video {
+            margin-top: 20px;
+            border: 5px solid #fff;
+            border-radius: 10px;
+            width: 400px;
+            height: 300px;
+        }
+        #result {
+            font-size: 18px;
+            margin-top: 20px;
+            background-color: #fff;
+            color: #333;
+            padding: 10px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        ul {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            color: #333;
+            list-style: none;
+        }
+        /* Estilo para el logo */
+        .logo {
+            width: 150px;
+            margin-bottom: 20px;
+            margin-left: -4cm; /* Desplazar el logo 4 cm a la izquierda */
+        }
+    </style>
+</head>
+<body>
+    <!-- Incluir el logo con desplazamiento a la izquierda -->
+    <img src="img/logo.png" alt="Logo de la Institución" class="logo">
+
+    <h1><i class="fas fa-camera"></i> Escanear Código QR</h1>
+
+    <video id="preview" autoplay></video>
+    <p id="result">Esperando escaneo...</p>
+
+    <h2>Asistencias Registradas:</h2>
+    <ul id="attendanceList"></ul>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.3.1/jsQR.min.js"></script>
+    <script>
+        // Código de escaneo del QR aquí...
+    </script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar Código QR</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(120deg, #2980b9, #6dd5fa, #ffffff);
+            color: #fff;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            color: #333;
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        label, input, button {
+            display: block;
+            margin: 10px auto;
+            width: 300px;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            font-size: 16px;
+        }
+        button {
+            background-color: #3498db;
+            color: #fff;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #qrcode {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+        }
+        /* Estilo para el logo */
+        .logo {
+            width: 150px;
+            margin-bottom: 20px;
+            margin-left: -4cm; /* Desplazar el logo 4 cm a la izquierda */
+        }
+    </style>
+</head>
+<body>
+    <!-- Incluir el logo con desplazamiento a la izquierda -->
+    <img src="img/logo.png" alt="Logo de la Institución" class="logo">
+
+    <h1><i class="fas fa-qrcode"></i> Generar Código QR</h1>
+
+    <label for="studentID"><i class="fas fa-id-badge"></i> ID del Estudiante</label>
+    <input type="text" id="studentID" placeholder="Ingrese el ID del estudiante">
+    <button onclick="generateQRCode()"><i class="fas fa-qrcode"></i> Generar QR</button>
+
+    <div id="qrcode"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        function generateQRCode() {
+            const studentID = document.getElementById("studentID").value;
+            if (studentID === "") {
+                alert("Por favor, ingrese el ID del estudiante");
+                return;
+            }
+            document.getElementById("qrcode").innerHTML = "";
+            new QRCode(document.getElementById("qrcode"), {
+                text: studentID,
+                width: 128,
+                height: 128
+            });
+        }
+    </script>
+</body>
+</html>
+

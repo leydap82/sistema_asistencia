@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú Principal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            /* Fondo con colores inspirados en el logo */
+            background: linear-gradient(120deg, #78a5d8, #5c81e7, #0e40c9);
+            color: #fff;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            background-color: #fff;
+            color: #333;
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
+            font-size: 2.5rem;
+        }
+        .menu-container {
+            margin-top: 50px;
+        }
+        .menu-link {
+            display: block;
+            margin: 20px auto;
+            padding: 20px;
+            width: 250px;
+            background-color: hsl(219, 88%, 38%); /* Color basado en el logo */
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.5rem;
+            border-radius: 10px;
+            transition: background-color 0.3s ease;
+        }
+        .menu-link:hover {
+            background-color: #2610ecef; /* Color más oscuro al hacer hover */
+        }
+        i {
+            margin-right: 10px;
+        }
+        /* Estilo para el logo */
+        .logo {
+            width: 150px;
+            margin-bottom: 20px;
+            margin-left: -4cm; /* Desplazar el logo 4 cm a la izquierda */
+        }
+    </style>
+</head>
+<body>
+    <!-- Incluir el logo aquí -->
+    <img src="img/logo.png" alt="Logo de la Institución" class="logo">
+
+    <h1><i class="fas fa-home"></i> Menú Principal</h1>
+    
+    <div class="menu-container">
+        <a href="generar_qr.html" class="menu-link">
+            <i class="fas fa-qrcode"></i> Generar Código QR
+        </a>
+        <a href="escanear_qr.html" class="menu-link">
+            <i class="fas fa-camera"></i> Escanear Código QR
+        </a>
+        <a href="registro_estudiantes.html" class="menu-link">
+            <i class="fas fa-user-plus"></i> Registrar Estudiantes
+        </a>
+    </div>
+</body>
+</html>
