@@ -26,7 +26,7 @@
         #qr-reader {
             margin: 20px auto;
             width: 100%;
-            max-width: 300px; /* Ancho reducido para móviles */
+            max-width: 300px;
             border: 5px solid #fff;
             border-radius: 10px;
         }
@@ -49,18 +49,26 @@
         button, input[type="date"] {
             background-color: #3498db;
             color: white;
-            padding: 10px 20px; /* Tamaño reducido */
+            padding: 10px 20px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px; /* Tamaño reducido */
+            font-size: 16px;
             margin: 10px;
-            width: 80%; /* Ancho ajustado para móviles */
-            max-width: 250px; /* Tamaño máximo para pantallas más grandes */
+            width: 80%;
+            max-width: 250px;
             transition: all 0.3s ease;
         }
-        button:hover, input[type="date"]:hover {
+        button:hover {
             background-color: #2ecc71;
+        }
+        input[type="date"] {
+            background-color: #fff;  /* Fondo blanco */
+            color: #333;  /* Texto oscuro */
+            text-align: center;
+            padding: 10px;
+            border: 2px solid #3498db;
+            border-radius: 5px;
         }
         button {
             background-color: #e74c3c;
@@ -77,7 +85,7 @@
                 font-size: 24px;
             }
             button, input[type="date"] {
-                font-size: 16px; /* Aumentar tamaño del texto para móviles */
+                font-size: 16px;
                 padding: 10px 15px;
             }
             #qr-reader {
@@ -109,11 +117,13 @@
     <!-- Incluimos la librería html5-qrcode -->
     <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
     <script>
-        const qrReader = new Html5Qrcode("qr-reader");
+        let qrReader;
 
         function startQRScanner() {
+            qrReader = new Html5Qrcode("qr-reader");
+
             qrReader.start(
-                { facingMode: "environment" }, // Cámara trasera por defecto en móviles
+                { facingMode: "environment" }, // Usar la cámara trasera
                 {
                     fps: 10,    // Velocidad de escaneo
                     qrbox: { width: 250, height: 250 }  // Cuadro de escaneo
@@ -124,13 +134,20 @@
             });
         }
 
+        function stopQRScanner() {
+            if (qrReader) {
+                qrReader.stop().then(() => {
+                    console.log("Escaneo detenido");
+                }).catch(err => {
+                    console.error("Error al detener el escaneo:", err);
+                });
+            }
+        }
+
         function onScanSuccess(qrCodeMessage) {
             document.getElementById('result').innerText = `Código detectado: ${qrCodeMessage}`;
             registrarAsistencia(qrCodeMessage);
-            qrReader.stop();  // Detener escaneo una vez que se detecta un QR
-            setTimeout(() => {
-                qrReader.start(); // Reanudar escaneo después de unos segundos
-            }, 3000);
+            stopQRScanner();  // Detener escaneo una vez que se detecta un QR
         }
 
         function onScanError(errorMessage) {
