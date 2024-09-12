@@ -26,7 +26,7 @@
         #qr-reader {
             margin: 20px auto;
             width: 100%;
-            max-width: 400px;
+            max-width: 300px; /* Ancho reducido para móviles */
             border: 5px solid #fff;
             border-radius: 10px;
         }
@@ -49,14 +49,14 @@
         button, input[type="date"] {
             background-color: #3498db;
             color: white;
-            padding: 15px;
+            padding: 10px 20px; /* Tamaño reducido */
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 16px; /* Tamaño reducido */
             margin: 10px;
-            width: 90%; /* Ancho ajustado para móviles */
-            max-width: 400px;
+            width: 80%; /* Ancho ajustado para móviles */
+            max-width: 250px; /* Tamaño máximo para pantallas más grandes */
             transition: all 0.3s ease;
         }
         button:hover, input[type="date"]:hover {
@@ -77,7 +77,8 @@
                 font-size: 24px;
             }
             button, input[type="date"] {
-                font-size: 18px; /* Aumentar tamaño del texto para móviles */
+                font-size: 16px; /* Aumentar tamaño del texto para móviles */
+                padding: 10px 15px;
             }
             #qr-reader {
                 width: 100%;
@@ -111,23 +112,29 @@
         const qrReader = new Html5Qrcode("qr-reader");
 
         function startQRScanner() {
-            qrReader.start({ facingMode: "environment" }, {
-                fps: 10,
-                qrbox: { width: 250, height: 250 }
-            }, onScanSuccess, onScanError);
+            qrReader.start(
+                { facingMode: "environment" }, // Cámara trasera por defecto en móviles
+                {
+                    fps: 10,    // Velocidad de escaneo
+                    qrbox: { width: 250, height: 250 }  // Cuadro de escaneo
+                },
+                onScanSuccess, onScanError
+            ).catch(err => {
+                console.error("Error al iniciar la cámara:", err);
+            });
         }
 
         function onScanSuccess(qrCodeMessage) {
             document.getElementById('result').innerText = `Código detectado: ${qrCodeMessage}`;
             registrarAsistencia(qrCodeMessage);
-            qrReader.stop();
+            qrReader.stop();  // Detener escaneo una vez que se detecta un QR
             setTimeout(() => {
                 qrReader.start(); // Reanudar escaneo después de unos segundos
             }, 3000);
         }
 
         function onScanError(errorMessage) {
-            console.log(errorMessage); // Manejar errores de escaneo aquí si es necesario
+            console.log("Error de escaneo:", errorMessage); // Mostrar errores de escaneo si los hay
         }
 
         // Función para registrar la asistencia con fecha
@@ -186,4 +193,3 @@
     </script>
 </body>
 </html>
-

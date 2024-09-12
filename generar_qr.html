@@ -5,13 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generar Código QR</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: linear-gradient(120deg, #2980b9, #6dd5fa, #ffffff);
+            background: linear-gradient(120deg, #e74c3c, #f39c12, #f1c40f);
             color: #fff;
             text-align: center;
-            padding: 50px;
+            padding: 20px;
+            margin: 0;
+            box-sizing: border-box;
         }
         h1 {
             color: #333;
@@ -19,51 +22,61 @@
             padding: 10px;
             border-radius: 8px;
             display: inline-block;
+            margin-bottom: 20px;
         }
         label, input, button {
             display: block;
             margin: 10px auto;
-            width: 300px;
+            width: 90%; /* Ajustado para móviles */
+            max-width: 400px;
             padding: 10px;
             border-radius: 5px;
             border: none;
             font-size: 16px;
         }
+        input {
+            border: 2px solid #fff;
+            text-align: center; /* Alinear el texto al centro */
+        }
         button {
-            background-color: #3498db;
+            background-color: #e74c3c;
             color: #fff;
             cursor: pointer;
+            transition: background-color 0.3s ease;
         }
         button:hover {
-            background-color: #2980b9;
+            background-color: #c0392b;
         }
         #qrcode {
-            margin-top: 20px;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 10px;
+            margin: 20px auto;
+            width: 80%;
+            max-width: 300px; /* Limitar el tamaño del QR en móviles */
+            height: auto;
         }
-        /* Estilo para el logo */
-        .logo {
-            width: 150px;
-            margin-bottom: 20px;
-            margin-left: -4cm; /* Desplazar el logo 4 cm a la izquierda */
+        /* Estilos responsivos */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 24px;
+            }
+            input, button {
+                font-size: 18px; /* Texto más grande en móviles */
+            }
+            #qrcode {
+                width: 100%;
+                max-width: 250px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Incluir el logo con desplazamiento a la izquierda -->
-    <img src="img/logo.png" alt="Logo de la Institución" class="logo">
-
     <h1><i class="fas fa-qrcode"></i> Generar Código QR</h1>
 
-    <label for="studentID"><i class="fas fa-id-badge"></i> ID del Estudiante</label>
-    <input type="text" id="studentID" placeholder="Ingrese el ID del estudiante">
-    <button onclick="generateQRCode()"><i class="fas fa-qrcode"></i> Generar QR</button>
+    <label for="studentID">ID del Estudiante:</label>
+    <input type="text" id="studentID" placeholder="Ingrese el ID del Estudiante">
+    <button onclick="generateQRCode()">Generar QR</button>
 
     <div id="qrcode"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
         function generateQRCode() {
             const studentID = document.getElementById("studentID").value;
@@ -71,11 +84,15 @@
                 alert("Por favor, ingrese el ID del estudiante");
                 return;
             }
+
+            // Limpiar QR previo
             document.getElementById("qrcode").innerHTML = "";
+
+            // Generar nuevo QR
             new QRCode(document.getElementById("qrcode"), {
                 text: studentID,
-                width: 128,
-                height: 128
+                width: 250,  // Ancho ajustado para dispositivos móviles
+                height: 250  // Alto ajustado para dispositivos móviles
             });
         }
     </script>
