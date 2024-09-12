@@ -3,61 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrar Estudiantes</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <title>Registro de Estudiantes</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: linear-gradient(120deg, #83aae6, #5e5bf5, #4d25fd);
+            background: linear-gradient(120deg, #3498db, #2ecc71, #ffffff); /* Fondo azul */
             color: #fff;
+            padding: 20px;
             text-align: center;
-            padding: 50px;
-        }
-        h1 {
-            color: #333;
-            background-color: #fff;
-            padding: 10px;
-            border-radius: 8px;
-            display: inline-block;
-        }
-        label, input, button {
-            display: block;
-            margin: 10px auto;
-            width: 300px;
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-            font-size: 16px;
-        }
-        input {
-            border: 2px solid #fff;
-        }
-        button {
-            background-color: #e74c3c;
-            color: #fff;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        button:hover {
-            background-color: #c0392b;
         }
         table {
             width: 80%;
             margin: 20px auto;
+            border-collapse: collapse;
             background-color: #fff;
             color: #333;
             border-radius: 10px;
-            padding: 20px;
         }
         th, td {
             padding: 10px;
+            border: 1px solid #ddd;
         }
         th {
-            background-color: #e74c3c;
-            color: #fff;
+            background-color: #3498db;
+            color: white;
         }
-        i {
-            margin-right: 10px;
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #2980b9;
         }
         /* Estilo para el logo */
         .logo {
@@ -68,40 +49,153 @@
     </style>
 </head>
 <body>
-    <!-- Incluir el logo con desplazamiento a la izquierda -->
+    <!-- Incluir el logo al inicio -->
     <img src="img/logo.png" alt="Logo de la Institución" class="logo">
 
-    <h1><i class="fas fa-user-plus"></i> Registrar Estudiantes</h1>
+    <h1>Registro de Estudiantes</h1>
 
     <form id="studentForm">
-        <label for="studentID"><i class="fas fa-id-card"></i> ID del Estudiante</label>
-        <input type="text" id="studentID" required>
-        <label for="nombre"><i class="fas fa-user"></i> Nombre del Estudiante</label>
-        <input type="text" id="nombre" required>
-        <label for="ciclo"><i class="fas fa-graduation-cap"></i> Ciclo del Estudiante</label>
-        <input type="text" id="ciclo" required>
-        <button type="submit"><i class="fas fa-save"></i> Registrar Estudiante</button>
+        <input type="text" id="studentID" placeholder="ID del Estudiante" required><br><br>
+        <input type="text" id="nombre" placeholder="Nombre del Estudiante" required><br><br>
+        <input type="text" id="ciclo" placeholder="Ciclo del Estudiante"><br><br>
+        <button type="submit">Registrar Estudiante</button>
     </form>
 
-    <h2>Importar Estudiantes desde Excel</h2>
-    <input type="file" id="fileUpload" />
-    <button onclick="importarExcel()">Importar Excel</button>
+    <br><br>
 
-    <h2>Estudiantes Registrados</h2>
-    <table border="1" id="studentTable">
+    <!-- Importar Excel -->
+    <h2>Importar Estudiantes desde Excel</h2>
+    <input type="file" id="inputExcel" accept=".xlsx, .xls" />
+    <button onclick="importarDesdeExcel()">Importar Estudiantes</button>
+
+    <h2>Lista de Estudiantes</h2>
+    <table id="tablaEstudiantes">
         <thead>
             <tr>
                 <th>ID</th>
                 <th>Nombre</th>
                 <th>Ciclo</th>
-                <th>Acciones</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
 
+    <!-- Librerías de Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+    
+    <!-- Librería para procesar Excel (SheetJS) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+
+    <!-- Configuración de Firebase -->
     <script>
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY",
+            authDomain: "sistemaasistencia-f98fb.firebaseapp.com",
+            databaseURL: "https://sistemaasistencia-f98fb.firebaseio.com",
+            projectId: "sistemaasistencia-f98fb",
+            storageBucket: "sistemaasistencia-f98fb.appspot.com",
+            messagingSenderId: "72352052415",
+            appId: "1:72352052415:web:70eeb8929983d34daf020a",
+            measurementId: "G-9XP9J4X8L0"
+        };
+
+        // Inicializar Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Función para guardar estudiantes en Firebase
+        function guardarEstudiantesEnFirebase(estudiantes) {
+            estudiantes.forEach(estudiante => {
+                const newStudentKey = database.ref().child('estudiantes').push().key;
+                database.ref('estudiantes/' + newStudentKey).set(estudiante)
+                .then(() => {
+                    console.log('Estudiante guardado en Firebase');
+                    obtenerEstudiantesDeFirebase();  // Actualizar lista
+                })
+                .catch((error) => {
+                    console.error('Error al guardar en Firebase:', error);
+                });
+            });
+        }
+
+        // Función para obtener estudiantes desde Firebase
+        function obtenerEstudiantesDeFirebase() {
+            database.ref('estudiantes/').once('value')
+            .then((snapshot) => {
+                const estudiantes = snapshot.val();
+                mostrarEstudiantes(estudiantes);
+            })
+            .catch((error) => {
+                console.error('Error al obtener estudiantes de Firebase:', error);
+            });
+        }
+
+        // Función para mostrar estudiantes en la tabla
+        function mostrarEstudiantes(estudiantes) {
+            const tabla = document.querySelector('#tablaEstudiantes tbody');
+            tabla.innerHTML = '';  // Limpiar tabla
+
+            if (estudiantes) {
+                for (let key in estudiantes) {
+                    const estudiante = estudiantes[key];
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${estudiante.id}</td>
+                        <td>${estudiante.nombre}</td>
+                        <td>${estudiante.ciclo}</td>
+                    `;
+                    tabla.appendChild(row);
+                }
+            } else {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="3">No hay estudiantes registrados.</td>`;
+                tabla.appendChild(row);
+            }
+        }
+
+        // Leer e importar datos desde Excel
+        function importarDesdeExcel() {
+            const inputExcel = document.getElementById('inputExcel');
+            const file = inputExcel.files[0];
+
+            if (!file) {
+                alert('Por favor, selecciona un archivo Excel.');
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                const estudiantes = [];
+                jsonData.forEach((row, index) => {
+                    if (index !== 0 && row.length > 0) {  // Omitir la fila de encabezado
+                        const estudiante = {
+                            id: row[0],
+                            nombre: row[1],
+                            ciclo: row[2] || "Sin ciclo"  // Si no hay ciclo, asignar "Sin ciclo"
+                        };
+                        estudiantes.push(estudiante);
+                    }
+                });
+
+                guardarEstudiantesEnFirebase(estudiantes);
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Inicializar la lista de estudiantes al cargar la página
+        window.onload = obtenerEstudiantesDeFirebase;
+
+        // Guardar manualmente el estudiante
         document.getElementById('studentForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -109,83 +203,17 @@
             const nombre = document.getElementById('nombre').value;
             const ciclo = document.getElementById('ciclo').value;
 
-            let estudiantes = JSON.parse(localStorage.getItem('estudiantes')) || [];
-            estudiantes.push({ studentID, nombre, ciclo });
-
-            localStorage.setItem('estudiantes', JSON.stringify(estudiantes));
-            document.getElementById('studentForm').reset();
-            mostrarEstudiantes();
-        });
-
-        function mostrarEstudiantes() {
-            const estudiantes = JSON.parse(localStorage.getItem('estudiantes')) || [];
-            const tableBody = document.querySelector('#studentTable tbody');
-            tableBody.innerHTML = '';
-            estudiantes.forEach((estudiante, index) => {
-                const row = document.createElement('tr');
-                const cellID = document.createElement('td');
-                const cellNombre = document.createElement('td');
-                const cellCiclo = document.createElement('td');
-                const cellAcciones = document.createElement('td');
-                cellID.textContent = estudiante.studentID;
-                cellNombre.textContent = estudiante.nombre;
-                cellCiclo.textContent = estudiante.ciclo;
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = "Eliminar";
-                deleteButton.onclick = function() {
-                    eliminarEstudiante(index);
-                };
-                cellAcciones.appendChild(deleteButton);
-                row.appendChild(cellID);
-                row.appendChild(cellNombre);
-                row.appendChild(cellCiclo);
-                row.appendChild(cellAcciones);
-                tableBody.appendChild(row);
-            });
-        }
-
-        function eliminarEstudiante(index) {
-            let estudiantes = JSON.parse(localStorage.getItem('estudiantes')) || [];
-            estudiantes.splice(index, 1);
-            localStorage.setItem('estudiantes', JSON.stringify(estudiantes));
-            mostrarEstudiantes();
-        }
-
-        // Función para importar el archivo Excel y almacenar en localStorage
-        function importarExcel() {
-            const fileUpload = document.getElementById('fileUpload').files[0];
-            const reader = new FileReader();
-
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-
-                // Obtener la primera hoja del Excel
-                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-
-                // Convertir la hoja a formato JSON
-                const listaEstudiantes = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-
-                // Guardar la lista de estudiantes en localStorage
-                const estudiantesExistentes = JSON.parse(localStorage.getItem('estudiantes')) || [];
-                const estudiantesNuevos = listaEstudiantes.slice(1).map(row => ({
-                    studentID: row[0],
-                    nombre: row[1],
-                    ciclo: row[2] || 'N/A'
-                }));
-
-                const estudiantesActualizados = [...estudiantesExistentes, ...estudiantesNuevos];
-
-                localStorage.setItem('estudiantes', JSON.stringify(estudiantesActualizados));
-
-                alert('Lista de estudiantes importada correctamente');
-                mostrarEstudiantes();
+            const estudiante = {
+                id: studentID,
+                nombre: nombre,
+                ciclo: ciclo || "Sin ciclo"  // Asignar "Sin ciclo" si está vacío
             };
 
-            reader.readAsArrayBuffer(fileUpload);
-        }
+            guardarEstudiantesEnFirebase([estudiante]);
 
-        window.onload = mostrarEstudiantes;
+            // Limpiar el formulario
+            document.getElementById('studentForm').reset();
+        });
     </script>
 </body>
 </html>

@@ -57,10 +57,10 @@
         button:hover, input[type="date"]:hover {
             background-color: #2ecc71;
         }
-        button {
+        button.stop {
             background-color: #e74c3c;
         }
-        button:hover {
+        button.stop:hover {
             background-color: #c0392b;
         }
         @media (max-width: 600px) {
@@ -87,7 +87,7 @@
     
     <div class="button-container">
         <button id="start-scan" onclick="startQRScanner()">Iniciar Escaneo</button>
-        <button id="stop-scan" onclick="stopQRScanner()" disabled>Detener Escaneo</button>
+        <button id="stop-scan" class="stop" onclick="stopQRScanner()" disabled>Detener Escaneo</button>
     </div>
 
     <h2>Asistencias Registradas:</h2>
@@ -109,19 +109,25 @@
                 qrReader = new Html5Qrcode("qr-reader");
             }
 
-            qrReader.start(
-                { facingMode: "environment" },  // Usar la cámara trasera
-                {
-                    fps: 10,  // Velocidad de escaneo
-                    qrbox: { width: 250, height: 250 }  // Cuadro de escaneo
-                },
-                onScanSuccess, onScanError
-            ).then(() => {
-                document.getElementById("start-scan").disabled = true;
-                document.getElementById("stop-scan").disabled = false;
-            }).catch(err => {
-                document.getElementById('result').innerText = "Error al acceder a la cámara. Verifica los permisos.";
-                console.error("Error al iniciar la cámara:", err);
+            // Verificar si el navegador tiene permisos para la cámara
+            navigator.mediaDevices.getUserMedia({ video: true }).then(() => {
+                qrReader.start(
+                    { facingMode: "environment" },  // Usar la cámara trasera
+                    {
+                        fps: 10,  // Velocidad de escaneo
+                        qrbox: { width: 250, height: 250 }  // Cuadro de escaneo
+                    },
+                    onScanSuccess, onScanError
+                ).then(() => {
+                    document.getElementById("start-scan").disabled = true;
+                    document.getElementById("stop-scan").disabled = false;
+                }).catch(err => {
+                    document.getElementById('result').innerText = "Error al iniciar el escaneo. Verifica los permisos de la cámara.";
+                    console.error("Error al iniciar el escaneo:", err);
+                });
+            }).catch((error) => {
+                document.getElementById('result').innerText = "Permiso denegado para acceder a la cámara.";
+                console.error("Acceso a la cámara denegado:", error);
             });
         }
 
