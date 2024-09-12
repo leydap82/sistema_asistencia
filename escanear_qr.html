@@ -98,15 +98,17 @@
     <script>
         let qrReader;  // Escáner QR
 
-        // Iniciar el escaneo con manejo de errores
+        // Iniciar el escaneo con manejo de errores mejorado
         function startQRScanner() {
             try {
                 if (!qrReader) {
                     qrReader = new Html5Qrcode("qr-reader");  // Asegurarse de inicializar aquí la instancia
+                    console.log("Instancia de Html5Qrcode creada");
                 }
 
                 // Verificar si el navegador tiene permisos para la cámara
-                navigator.mediaDevices.getUserMedia({ video: true }).then(() => {
+                navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+                    console.log("Acceso a la cámara concedido");
                     qrReader.start(
                         { facingMode: "environment" },  // Usar la cámara trasera
                         {
@@ -115,6 +117,7 @@
                         },
                         onScanSuccess, onScanError
                     ).then(() => {
+                        console.log("Escaneo iniciado con éxito");
                         document.getElementById("start-scan").disabled = true;
                         document.getElementById("stop-scan").disabled = false;
                     }).catch(err => {
@@ -139,6 +142,7 @@
                         document.getElementById("start-scan").disabled = false;
                         document.getElementById("stop-scan").disabled = true;
                         document.getElementById('result').innerText = "Escaneo detenido.";
+                        console.log("Escaneo detenido con éxito");
                     }).catch(err => {
                         console.error("Error al detener el escaneo:", err);
                     });
