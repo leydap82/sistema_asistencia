@@ -26,7 +26,7 @@
         #qr-reader {
             margin: 20px auto;
             width: 100%;
-            max-width: 300px;
+            max-width: 320px; /* Ajustado para móviles */
             border: 5px solid #fff;
             border-radius: 10px;
         }
@@ -39,6 +39,9 @@
             border-radius: 8px;
             display: inline-block;
         }
+        .button-container {
+            margin-top: 20px;
+        }
         button, input[type="date"] {
             background-color: #3498db;
             color: white;
@@ -50,7 +53,6 @@
             margin: 10px;
             width: 80%;
             max-width: 250px;
-            transition: all 0.3s ease;
         }
         button:hover, input[type="date"]:hover {
             background-color: #2ecc71;
@@ -61,53 +63,93 @@
         button:hover {
             background-color: #c0392b;
         }
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 20px;
+            }
+            button, input[type="date"] {
+                font-size: 14px;
+                padding: 8px 15px;
+            }
+            #qr-reader {
+                width: 100%;
+                max-width: 250px; /* Ajustado aún más para pantallas móviles pequeñas */
+            }
+        }
     </style>
 </head>
 <body>
     <h1><i class="fas fa-camera"></i> Escanear Código QR</h1>
 
-    <!-- Escáner QR -->
+    <!-- Contenedor para el escáner QR -->
     <div id="qr-reader"></div>
     <p id="result">Esperando escaneo...</p>
+    
+    <div class="button-container">
+        <button onclick="startQRScanner()">Iniciar Escaneo</button>
+        <button onclick="stopQRScanner()">Detener Escaneo</button>
+    </div>
+
+    <h2>Asistencias Registradas:</h2>
+    <ul id="attendanceList"></ul>
+
+    <!-- Filtrar asistencias por fecha -->
+    <h2>Filtrar Asistencias</h2>
+    <input type="date" id="filterDate" />
+    <button onclick="generarReporte()">Generar Reporte</button>
 
     <!-- Librería html5-qrcode -->
     <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
     <script>
-        // Inicializa el escáner de QR
-        const qrReader = new Html5Qrcode("qr-reader");
+        let qrReader;  // Escáner QR
 
-        // Función para iniciar el escaneo
+        // Iniciar el escaneo
         function startQRScanner() {
+            if (!qrReader) {
+                qrReader = new Html5Qrcode("qr-reader");
+            }
+
             qrReader.start(
-                { facingMode: "environment" }, // Usar la cámara trasera por defecto
+                { facingMode: "environment" },  // Usar la cámara trasera
                 {
-                    fps: 10,    // Velocidad de escaneo
+                    fps: 10,  // Velocidad de escaneo
                     qrbox: { width: 250, height: 250 }  // Cuadro de escaneo
                 },
                 onScanSuccess, onScanError
             ).catch(err => {
-                console.error("Error al iniciar la cámara:", err);
                 document.getElementById('result').innerText = "Error al acceder a la cámara. Verifica los permisos.";
+                console.error("Error al iniciar la cámara:", err);
             });
         }
 
-        // Función cuando se detecta un código QR
+        // Detener el escaneo
+        function stopQRScanner() {
+            if (qrReader) {
+                qrReader.stop().then(() => {
+                    console.log("Escaneo detenido.");
+                }).catch(err => {
+                    console.error("Error al detener el escaneo:", err);
+                });
+            }
+        }
+
+        // Éxito en el escaneo del código QR
         function onScanSuccess(qrCodeMessage) {
             document.getElementById('result').innerText = `Código detectado: ${qrCodeMessage}`;
             registrarAsistencia(qrCodeMessage);
-            qrReader.stop();  // Detener escaneo después de detectar un código
+            stopQRScanner();  // Detener el escaneo después de detectar un QR
         }
 
-        // Función cuando hay un error en el escaneo
+        // Error en el escaneo
         function onScanError(errorMessage) {
             console.log("Error de escaneo:", errorMessage);
         }
 
-        // Función para registrar la asistencia con el código QR
+        // Registrar asistencia con QR escaneado
         function registrarAsistencia(studentID) {
             const attendanceList = document.getElementById('attendanceList');
             const listItem = document.createElement('li');
-            const fecha = new Date().toLocaleString(); // Obtener fecha y hora actuales
+            const fecha = new Date().toLocaleString();  // Fecha y hora actuales
             listItem.innerText = `ID Estudiante: ${studentID} - Fecha: ${fecha}`;
             attendanceList.appendChild(listItem);
 
@@ -116,8 +158,43 @@
             localStorage.setItem('asistencias', JSON.stringify(asistencias));
         }
 
-        // Iniciar el escaneo cuando la página se cargue
-        window.onload = startQRScanner;
+        // Generar reporte filtrado por fecha
+        function generarReporte() {
+            const filterDate = document.getElementById('filterDate').value;
+            if (!filterDate) {
+                alert('Por favor, selecciona una fecha para generar el reporte.');
+                return;
+            }
+
+            const asistencias = JSON.parse(localStorage.getItem('asistencias')) || [];
+            if (asistencias.length === 0) {
+                alert('No hay asistencias registradas.');
+                return;
+            }
+
+            const filteredAsistencias = asistencias.filter(asistencia => {
+                const fechaAsistencia = new Date(asistencia.fecha).toISOString().split('T')[0];
+                return fechaAsistencia === filterDate;
+            });
+
+            if (filteredAsistencias.length === 0) {
+                alert('No se encontraron asistencias para la fecha seleccionada.');
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,ID Estudiante,Fecha de Asistencia\n";
+            filteredAsistencias.forEach(asistencia => {
+                csvContent += `${asistencia.studentID},${asistencia.fecha}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `reporte_asistencia_${filterDate}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
     </script>
 </body>
 </html>
