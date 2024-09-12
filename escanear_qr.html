@@ -26,7 +26,7 @@
         #qr-reader {
             margin: 20px auto;
             width: 100%;
-            max-width: 320px; /* Ajustado para móviles */
+            max-width: 320px;
             border: 5px solid #fff;
             border-radius: 10px;
         }
@@ -73,7 +73,7 @@
             }
             #qr-reader {
                 width: 100%;
-                max-width: 250px; /* Ajustado aún más para pantallas móviles pequeñas */
+                max-width: 250px;
             }
         }
     </style>
@@ -86,8 +86,8 @@
     <p id="result">Esperando escaneo...</p>
     
     <div class="button-container">
-        <button onclick="startQRScanner()">Iniciar Escaneo</button>
-        <button onclick="stopQRScanner()">Detener Escaneo</button>
+        <button id="start-scan" onclick="startQRScanner()">Iniciar Escaneo</button>
+        <button id="stop-scan" onclick="stopQRScanner()" disabled>Detener Escaneo</button>
     </div>
 
     <h2>Asistencias Registradas:</h2>
@@ -116,7 +116,10 @@
                     qrbox: { width: 250, height: 250 }  // Cuadro de escaneo
                 },
                 onScanSuccess, onScanError
-            ).catch(err => {
+            ).then(() => {
+                document.getElementById("start-scan").disabled = true;
+                document.getElementById("stop-scan").disabled = false;
+            }).catch(err => {
                 document.getElementById('result').innerText = "Error al acceder a la cámara. Verifica los permisos.";
                 console.error("Error al iniciar la cámara:", err);
             });
@@ -126,7 +129,9 @@
         function stopQRScanner() {
             if (qrReader) {
                 qrReader.stop().then(() => {
-                    console.log("Escaneo detenido.");
+                    document.getElementById("start-scan").disabled = false;
+                    document.getElementById("stop-scan").disabled = true;
+                    document.getElementById('result').innerText = "Escaneo detenido.";
                 }).catch(err => {
                     console.error("Error al detener el escaneo:", err);
                 });
@@ -137,7 +142,6 @@
         function onScanSuccess(qrCodeMessage) {
             document.getElementById('result').innerText = `Código detectado: ${qrCodeMessage}`;
             registrarAsistencia(qrCodeMessage);
-            stopQRScanner();  // Detener el escaneo después de detectar un QR
         }
 
         // Error en el escaneo
