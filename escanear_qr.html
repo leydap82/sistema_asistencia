@@ -106,7 +106,7 @@
         // Iniciar el escaneo
         function startQRScanner() {
             if (!qrReader) {
-                qrReader = new Html5Qrcode("qr-reader");
+                qrReader = new Html5Qrcode("qr-reader");  // Asegurarse de inicializar aquí la instancia
             }
 
             // Verificar si el navegador tiene permisos para la cámara

@@ -7,10 +7,10 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: linear-gradient(120deg, #3498db, #2ecc71, #ffffff); /* Fondo azul */
+            background: linear-gradient(120deg, #3498db, #2ecc71, #ffffff);
             color: #fff;
-            padding: 20px;
             text-align: center;
+            padding: 20px;
         }
         table {
             width: 80%;
@@ -38,13 +38,12 @@
             font-size: 16px;
         }
         button:hover {
-            background-color: #2980b9;
+            background-color: #2ecc71;
         }
-        /* Estilo para el logo */
         .logo {
             width: 150px;
             margin-bottom: 20px;
-            margin-left: -4cm; /* Desplazar el logo 4 cm a la izquierda */
+            margin-left: -4cm; /* Ajuste de la posición del logo */
         }
     </style>
 </head>
@@ -54,6 +53,7 @@
 
     <h1>Registro de Estudiantes</h1>
 
+    <!-- Formulario para registrar estudiantes manualmente -->
     <form id="studentForm">
         <input type="text" id="studentID" placeholder="ID del Estudiante" required><br><br>
         <input type="text" id="nombre" placeholder="Nombre del Estudiante" required><br><br>
@@ -63,11 +63,12 @@
 
     <br><br>
 
-    <!-- Importar Excel -->
+    <!-- Importar estudiantes desde archivo Excel -->
     <h2>Importar Estudiantes desde Excel</h2>
     <input type="file" id="inputExcel" accept=".xlsx, .xls" />
     <button onclick="importarDesdeExcel()">Importar Estudiantes</button>
 
+    <!-- Tabla para mostrar la lista de estudiantes -->
     <h2>Lista de Estudiantes</h2>
     <table id="tablaEstudiantes">
         <thead>
@@ -75,86 +76,70 @@
                 <th>ID</th>
                 <th>Nombre</th>
                 <th>Ciclo</th>
+                <th>Fecha Registro</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
 
-    <!-- Librerías de Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
-    
-    <!-- Librería para procesar Excel (SheetJS) -->
+    <!-- Filtrar estudiantes por fecha y generar reporte -->
+    <h2>Filtrar Estudiantes por Fecha</h2>
+    <input type="date" id="filterDate" />
+    <button onclick="generarReporte()">Generar Reporte</button>
+
+    <!-- Librería SheetJS para manejar Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
 
-    <!-- Configuración de Firebase -->
     <script>
-        const firebaseConfig = {
-            apiKey: "TU_API_KEY",
-            authDomain: "sistemaasistencia-f98fb.firebaseapp.com",
-            databaseURL: "https://sistemaasistencia-f98fb.firebaseio.com",
-            projectId: "sistemaasistencia-f98fb",
-            storageBucket: "sistemaasistencia-f98fb.appspot.com",
-            messagingSenderId: "72352052415",
-            appId: "1:72352052415:web:70eeb8929983d34daf020a",
-            measurementId: "G-9XP9J4X8L0"
-        };
+        // Función para registrar manualmente un estudiante y agregarlo a la tabla y LocalStorage
+        document.getElementById('studentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
 
-        // Inicializar Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+            const studentID = document.getElementById('studentID').value;
+            const nombre = document.getElementById('nombre').value;
+            const ciclo = document.getElementById('ciclo').value;
+            const fecha = new Date().toLocaleDateString();  // Fecha actual
 
-        // Función para guardar estudiantes en Firebase
-        function guardarEstudiantesEnFirebase(estudiantes) {
-            estudiantes.forEach(estudiante => {
-                const newStudentKey = database.ref().child('estudiantes').push().key;
-                database.ref('estudiantes/' + newStudentKey).set(estudiante)
-                .then(() => {
-                    console.log('Estudiante guardado en Firebase');
-                    obtenerEstudiantesDeFirebase();  // Actualizar lista
-                })
-                .catch((error) => {
-                    console.error('Error al guardar en Firebase:', error);
-                });
-            });
+            const estudiante = { studentID, nombre, ciclo, fecha };
+            agregarEstudianteATabla(estudiante);
+
+            let estudiantes = JSON.parse(localStorage.getItem('estudiantes')) || [];
+            estudiantes.push(estudiante);
+
+            localStorage.setItem('estudiantes', JSON.stringify(estudiantes));
+
+            document.getElementById('studentForm').reset();
+        });
+
+        // Función para agregar un estudiante a la tabla HTML
+        function agregarEstudianteATabla(estudiante) {
+            const tableBody = document.querySelector('#tablaEstudiantes tbody');
+            const row = document.createElement('tr');
+
+            const cellID = document.createElement('td');
+            const cellNombre = document.createElement('td');
+            const cellCiclo = document.createElement('td');
+            const cellFecha = document.createElement('td');
+
+            cellID.textContent = estudiante.studentID;
+            cellNombre.textContent = estudiante.nombre;
+            cellCiclo.textContent = estudiante.ciclo || "Sin ciclo";
+            cellFecha.textContent = estudiante.fecha;
+
+            row.appendChild(cellID);
+            row.appendChild(cellNombre);
+            row.appendChild(cellCiclo);
+            row.appendChild(cellFecha);
+            tableBody.appendChild(row);
         }
 
-        // Función para obtener estudiantes desde Firebase
-        function obtenerEstudiantesDeFirebase() {
-            database.ref('estudiantes/').once('value')
-            .then((snapshot) => {
-                const estudiantes = snapshot.val();
-                mostrarEstudiantes(estudiantes);
-            })
-            .catch((error) => {
-                console.error('Error al obtener estudiantes de Firebase:', error);
-            });
+        // Cargar estudiantes desde LocalStorage cuando la página se cargue
+        window.onload = function() {
+            const estudiantes = JSON.parse(localStorage.getItem('estudiantes')) || [];
+            estudiantes.forEach(estudiante => agregarEstudianteATabla(estudiante));
         }
 
-        // Función para mostrar estudiantes en la tabla
-        function mostrarEstudiantes(estudiantes) {
-            const tabla = document.querySelector('#tablaEstudiantes tbody');
-            tabla.innerHTML = '';  // Limpiar tabla
-
-            if (estudiantes) {
-                for (let key in estudiantes) {
-                    const estudiante = estudiantes[key];
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${estudiante.id}</td>
-                        <td>${estudiante.nombre}</td>
-                        <td>${estudiante.ciclo}</td>
-                    `;
-                    tabla.appendChild(row);
-                }
-            } else {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td colspan="3">No hay estudiantes registrados.</td>`;
-                tabla.appendChild(row);
-            }
-        }
-
-        // Leer e importar datos desde Excel
+        // Función para leer Excel e importar estudiantes
         function importarDesdeExcel() {
             const inputExcel = document.getElementById('inputExcel');
             const file = inputExcel.files[0];
@@ -178,42 +163,62 @@
                 jsonData.forEach((row, index) => {
                     if (index !== 0 && row.length > 0) {  // Omitir la fila de encabezado
                         const estudiante = {
-                            id: row[0],
+                            studentID: row[0],
                             nombre: row[1],
-                            ciclo: row[2] || "Sin ciclo"  // Si no hay ciclo, asignar "Sin ciclo"
+                            ciclo: row[2] || "Sin ciclo",
+                            fecha: new Date().toLocaleDateString()  // Asignar fecha actual al importar
                         };
+                        agregarEstudianteATabla(estudiante);
                         estudiantes.push(estudiante);
                     }
                 });
 
-                guardarEstudiantesEnFirebase(estudiantes);
+                // Guardar en LocalStorage
+                const estudiantesPrevios = JSON.parse(localStorage.getItem('estudiantes')) || [];
+                const nuevosEstudiantes = estudiantesPrevios.concat(estudiantes);
+                localStorage.setItem('estudiantes', JSON.stringify(nuevosEstudiantes));
             };
 
             reader.readAsArrayBuffer(file);
         }
 
-        // Inicializar la lista de estudiantes al cargar la página
-        window.onload = obtenerEstudiantesDeFirebase;
+        // Filtrar estudiantes por fecha y generar reporte
+        function generarReporte() {
+            const filterDate = document.getElementById('filterDate').value;
+            if (!filterDate) {
+                alert('Por favor, selecciona una fecha para generar el reporte.');
+                return;
+            }
 
-        // Guardar manualmente el estudiante
-        document.getElementById('studentForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+            const estudiantes = JSON.parse(localStorage.getItem('estudiantes')) || [];
+            if (estudiantes.length === 0) {
+                alert('No hay estudiantes registrados.');
+                return;
+            }
 
-            const studentID = document.getElementById('studentID').value;
-            const nombre = document.getElementById('nombre').value;
-            const ciclo = document.getElementById('ciclo').value;
+            const estudiantesFiltrados = estudiantes.filter(estudiante => {
+                const fechaEstudiante = new Date(estudiante.fecha).toISOString().split('T')[0];
+                return fechaEstudiante === filterDate;
+            });
 
-            const estudiante = {
-                id: studentID,
-                nombre: nombre,
-                ciclo: ciclo || "Sin ciclo"  // Asignar "Sin ciclo" si está vacío
-            };
+            if (estudiantesFiltrados.length === 0) {
+                alert('No se encontraron estudiantes para la fecha seleccionada.');
+                return;
+            }
 
-            guardarEstudiantesEnFirebase([estudiante]);
+            let csvContent = "data:text/csv;charset=utf-8,ID Estudiante,Nombre,Ciclo,Fecha de Registro\n";
+            estudiantesFiltrados.forEach(estudiante => {
+                csvContent += `${estudiante.studentID},${estudiante.nombre},${estudiante.ciclo},${estudiante.fecha}\n`;
+            });
 
-            // Limpiar el formulario
-            document.getElementById('studentForm').reset();
-        });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `reporte_estudiantes_${filterDate}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
     </script>
 </body>
 </html>
