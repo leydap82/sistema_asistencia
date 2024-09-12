@@ -182,6 +182,44 @@
             asistencias.push({ studentID, fecha });
             localStorage.setItem('asistencias', JSON.stringify(asistencias));
         }
+
+        // Generar reporte filtrado por fecha
+        function generarReporte() {
+            const filterDate = document.getElementById('filterDate').value;
+            if (!filterDate) {
+                alert('Por favor, selecciona una fecha para generar el reporte.');
+                return;
+            }
+
+            const asistencias = JSON.parse(localStorage.getItem('asistencias')) || [];
+            if (asistencias.length === 0) {
+                alert('No hay asistencias registradas.');
+                return;
+            }
+
+            const filteredAsistencias = asistencias.filter(asistencia => {
+                const fechaAsistencia = new Date(asistencia.fecha).toISOString().split('T')[0];
+                return fechaAsistencia === filterDate;
+            });
+
+            if (filteredAsistencias.length === 0) {
+                alert('No se encontraron asistencias para la fecha seleccionada.');
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,ID Estudiante,Fecha de Asistencia\n";
+            filteredAsistencias.forEach(asistencia => {
+                csvContent += `${asistencia.studentID},${asistencia.fecha}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `reporte_asistencia_${filterDate}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
     </script>
 </body>
 </html>
