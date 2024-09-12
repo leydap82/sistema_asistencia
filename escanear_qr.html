@@ -49,21 +49,18 @@
         button, input[type="date"] {
             background-color: #3498db;
             color: white;
-            padding: 15px 30px;
+            padding: 15px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 16px;
             margin: 10px;
+            width: 90%; /* Ancho ajustado para móviles */
+            max-width: 400px;
             transition: all 0.3s ease;
         }
         button:hover, input[type="date"]:hover {
             background-color: #2ecc71;
-        }
-        input[type="date"] {
-            text-align: center;
-            width: 300px;
-            height: 50px;
         }
         button {
             background-color: #e74c3c;
@@ -80,9 +77,7 @@
                 font-size: 24px;
             }
             button, input[type="date"] {
-                width: 100%;
-                padding: 15px;
-                font-size: 16px;
+                font-size: 18px; /* Aumentar tamaño del texto para móviles */
             }
             #qr-reader {
                 width: 100%;
