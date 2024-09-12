@@ -39,10 +39,7 @@
             border-radius: 8px;
             display: inline-block;
         }
-        .button-container {
-            margin-top: 20px;
-        }
-        button, input[type="date"] {
+        button {
             background-color: #3498db;
             color: white;
             padding: 10px 20px;
@@ -54,20 +51,14 @@
             width: 80%;
             max-width: 250px;
         }
-        button:hover, input[type="date"]:hover {
+        button:hover {
             background-color: #2ecc71;
-        }
-        button.stop {
-            background-color: #e74c3c;
-        }
-        button.stop:hover {
-            background-color: #c0392b;
         }
         @media (max-width: 600px) {
             h1 {
                 font-size: 20px;
             }
-            button, input[type="date"] {
+            button {
                 font-size: 14px;
                 padding: 8px 15px;
             }
@@ -84,10 +75,9 @@
     <!-- Contenedor para el escáner QR -->
     <div id="qr-reader"></div>
     <p id="result">Esperando escaneo...</p>
-    
+
     <div class="button-container">
-        <button id="start-scan" onclick="startQRScanner()">Iniciar Escaneo</button>
-        <button id="stop-scan" class="stop" onclick="stopQRScanner()" disabled>Detener Escaneo</button>
+        <button id="start-scan" onclick="startQRScanner()">Escanear</button>
     </div>
 
     <h2>Asistencias Registradas:</h2>
@@ -112,6 +102,12 @@
                     console.log("Instancia de Html5Qrcode creada");
                 }
 
+                // Detectar si el dispositivo es móvil
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+                // Ajustar tamaño del cuadro de escaneo en función del dispositivo
+                const qrboxSize = isMobile ? { width: 200, height: 200 } : { width: 250, height: 250 };
+
                 // Verificar si el navegador tiene permisos para la cámara
                 navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
                     console.log("Acceso a la cámara concedido");
@@ -119,13 +115,12 @@
                         { facingMode: "environment" },  // Usar la cámara trasera
                         {
                             fps: 10,  // Velocidad de escaneo
-                            qrbox: { width: 250, height: 250 }  // Cuadro de escaneo
+                            qrbox: qrboxSize  // Cuadro de escaneo dinámico según el dispositivo
                         },
                         onScanSuccess, onScanError
                     ).then(() => {
                         console.log("Escaneo iniciado con éxito");
                         document.getElementById("start-scan").disabled = true;
-                        document.getElementById("stop-scan").disabled = false;
                     }).catch(err => {
                         document.getElementById('result').innerText = "Error al iniciar el escaneo. Verifica los permisos de la cámara.";
                         console.error("Error al iniciar el escaneo:", err);
@@ -140,13 +135,27 @@
             }
         }
 
+        // Éxito en el escaneo del código QR
+        function onScanSuccess(qrCodeMessage) {
+            document.getElementById('result').innerText = `Código detectado: ${qrCodeMessage}`;
+            registrarAsistencia(qrCodeMessage);
+
+            // Detener el escaneo automáticamente tras una captura exitosa
+            stopQRScanner();
+        }
+
+        // Error en el escaneo
+        function onScanError(errorMessage) {
+            console.log("Error de escaneo:", errorMessage);
+            document.getElementById('result').innerText = "Error durante el escaneo.";
+        }
+
         // Detener el escaneo
         function stopQRScanner() {
             try {
                 if (qrReader) {
                     qrReader.stop().then(() => {
                         document.getElementById("start-scan").disabled = false;
-                        document.getElementById("stop-scan").disabled = true;
                         document.getElementById('result').innerText = "Escaneo detenido.";
                         console.log("Escaneo detenido con éxito");
                     }).catch(err => {
@@ -156,18 +165,6 @@
             } catch (error) {
                 console.error("Error al detener el escaneo:", error);
             }
-        }
-
-        // Éxito en el escaneo del código QR
-        function onScanSuccess(qrCodeMessage) {
-            document.getElementById('result').innerText = `Código detectado: ${qrCodeMessage}`;
-            registrarAsistencia(qrCodeMessage);
-        }
-
-        // Error en el escaneo
-        function onScanError(errorMessage) {
-            console.log("Error de escaneo:", errorMessage);
-            document.getElementById('result').innerText = "Error durante el escaneo.";
         }
 
         // Registrar asistencia con QR escaneado
