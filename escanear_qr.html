@@ -93,8 +93,14 @@
     <h2>Asistencias Registradas:</h2>
     <ul id="attendanceList"></ul>
 
+    <!-- Filtrar asistencias por fecha -->
+    <h2>Filtrar Asistencias</h2>
+    <input type="date" id="filterDate" />
+    <button onclick="generarReporte()">Generar Reporte</button>
+
     <!-- Librería html5-qrcode -->
-    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode/minified/html5-qrcode.min.js"></script>
+
     <script>
         let qrReader;  // Escáner QR
 
