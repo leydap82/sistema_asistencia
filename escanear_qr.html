@@ -93,54 +93,58 @@
     <h2>Asistencias Registradas:</h2>
     <ul id="attendanceList"></ul>
 
-    <!-- Filtrar asistencias por fecha -->
-    <h2>Filtrar Asistencias</h2>
-    <input type="date" id="filterDate" />
-    <button onclick="generarReporte()">Generar Reporte</button>
-
     <!-- Librería html5-qrcode -->
     <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
     <script>
         let qrReader;  // Escáner QR
 
-        // Iniciar el escaneo
+        // Iniciar el escaneo con manejo de errores
         function startQRScanner() {
-            if (!qrReader) {
-                qrReader = new Html5Qrcode("qr-reader");  // Asegurarse de inicializar aquí la instancia
-            }
+            try {
+                if (!qrReader) {
+                    qrReader = new Html5Qrcode("qr-reader");  // Asegurarse de inicializar aquí la instancia
+                }
 
-            // Verificar si el navegador tiene permisos para la cámara
-            navigator.mediaDevices.getUserMedia({ video: true }).then(() => {
-                qrReader.start(
-                    { facingMode: "environment" },  // Usar la cámara trasera
-                    {
-                        fps: 10,  // Velocidad de escaneo
-                        qrbox: { width: 250, height: 250 }  // Cuadro de escaneo
-                    },
-                    onScanSuccess, onScanError
-                ).then(() => {
-                    document.getElementById("start-scan").disabled = true;
-                    document.getElementById("stop-scan").disabled = false;
-                }).catch(err => {
-                    document.getElementById('result').innerText = "Error al iniciar el escaneo. Verifica los permisos de la cámara.";
-                    console.error("Error al iniciar el escaneo:", err);
+                // Verificar si el navegador tiene permisos para la cámara
+                navigator.mediaDevices.getUserMedia({ video: true }).then(() => {
+                    qrReader.start(
+                        { facingMode: "environment" },  // Usar la cámara trasera
+                        {
+                            fps: 10,  // Velocidad de escaneo
+                            qrbox: { width: 250, height: 250 }  // Cuadro de escaneo
+                        },
+                        onScanSuccess, onScanError
+                    ).then(() => {
+                        document.getElementById("start-scan").disabled = true;
+                        document.getElementById("stop-scan").disabled = false;
+                    }).catch(err => {
+                        document.getElementById('result').innerText = "Error al iniciar el escaneo. Verifica los permisos de la cámara.";
+                        console.error("Error al iniciar el escaneo:", err);
+                    });
+                }).catch((error) => {
+                    document.getElementById('result').innerText = "Permiso denegado para acceder a la cámara.";
+                    console.error("Acceso a la cámara denegado:", error);
                 });
-            }).catch((error) => {
-                document.getElementById('result').innerText = "Permiso denegado para acceder a la cámara.";
-                console.error("Acceso a la cámara denegado:", error);
-            });
+            } catch (error) {
+                console.error("Error al inicializar el escaneo:", error);
+                document.getElementById('result').innerText = "Hubo un error al intentar iniciar el escaneo.";
+            }
         }
 
         // Detener el escaneo
         function stopQRScanner() {
-            if (qrReader) {
-                qrReader.stop().then(() => {
-                    document.getElementById("start-scan").disabled = false;
-                    document.getElementById("stop-scan").disabled = true;
-                    document.getElementById('result').innerText = "Escaneo detenido.";
-                }).catch(err => {
-                    console.error("Error al detener el escaneo:", err);
-                });
+            try {
+                if (qrReader) {
+                    qrReader.stop().then(() => {
+                        document.getElementById("start-scan").disabled = false;
+                        document.getElementById("stop-scan").disabled = true;
+                        document.getElementById('result').innerText = "Escaneo detenido.";
+                    }).catch(err => {
+                        console.error("Error al detener el escaneo:", err);
+                    });
+                }
+            } catch (error) {
+                console.error("Error al detener el escaneo:", error);
             }
         }
 
@@ -153,6 +157,7 @@
         // Error en el escaneo
         function onScanError(errorMessage) {
             console.log("Error de escaneo:", errorMessage);
+            document.getElementById('result').innerText = "Error durante el escaneo.";
         }
 
         // Registrar asistencia con QR escaneado
@@ -166,44 +171,6 @@
             let asistencias = JSON.parse(localStorage.getItem('asistencias')) || [];
             asistencias.push({ studentID, fecha });
             localStorage.setItem('asistencias', JSON.stringify(asistencias));
-        }
-
-        // Generar reporte filtrado por fecha
-        function generarReporte() {
-            const filterDate = document.getElementById('filterDate').value;
-            if (!filterDate) {
-                alert('Por favor, selecciona una fecha para generar el reporte.');
-                return;
-            }
-
-            const asistencias = JSON.parse(localStorage.getItem('asistencias')) || [];
-            if (asistencias.length === 0) {
-                alert('No hay asistencias registradas.');
-                return;
-            }
-
-            const filteredAsistencias = asistencias.filter(asistencia => {
-                const fechaAsistencia = new Date(asistencia.fecha).toISOString().split('T')[0];
-                return fechaAsistencia === filterDate;
-            });
-
-            if (filteredAsistencias.length === 0) {
-                alert('No se encontraron asistencias para la fecha seleccionada.');
-                return;
-            }
-
-            let csvContent = "data:text/csv;charset=utf-8,ID Estudiante,Fecha de Asistencia\n";
-            filteredAsistencias.forEach(asistencia => {
-                csvContent += `${asistencia.studentID},${asistencia.fecha}\n`;
-            });
-
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `reporte_asistencia_${filterDate}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         }
     </script>
 </body>
